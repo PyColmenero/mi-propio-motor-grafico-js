@@ -1,0 +1,11 @@
+html,body{
+    margin: 0;
+    overflow-y: hidden;
+    /* cursor: none; */
+    /* background-color: rgb(30,25,40); */
+}
+canvas{
+    /* border: 1px solid rgb(213, 213, 213); */
+    display: block;
+    margin: 0 auto;
+}
