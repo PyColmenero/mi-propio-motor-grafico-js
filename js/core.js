@@ -692,8 +692,8 @@ function main(once) {
 
     setTimeout(main, 10);
 
-    rotate_polygon(polygons[0], 1,1);
-    rotate_polygon(polygons[1], -1,0);
+    rotate_polygon(polygons[0], 1, 1);
+    rotate_polygon(polygons[1], -1, 0);
     // move_polygon(polygons[1], 0,0.02,0);
 
 
@@ -1180,6 +1180,80 @@ function drawTriangle(v1, v2, v3, color) {
         fillTopFlatTriangle(rp2, v4, rp3, color);
     }
 }
+
+
+
+
+document.addEventListener('touchstart', handleTouchStart, false);
+document.addEventListener('touchmove', handleTouchMove, false);
+document.addEventListener('touchend', function () {
+    lastTouch = null;
+}, false);
+
+var xDown = null;
+var yDown = null;
+
+function getTouches(evt) {
+    return evt.touches ||             // browser API
+        evt.originalEvent.touches; // jQuery
+}
+
+let firstTouch;
+function handleTouchStart(evt) {
+    firstTouch = getTouches(evt)[0];
+    xDown = firstTouch.clientX;
+    yDown = firstTouch.clientY;
+};
+
+let lastTouch = null;
+function handleTouchMove(evt) {
+    
+    let currentTouch = getTouches(evt)[0];
+    let cxDown = currentTouch.clientX;
+    let cyDown = currentTouch.clientY;    
+    if(!lastTouch){
+        lastTouch = firstTouch
+    }
+    let lxDown = lastTouch.clientX;
+    let lyDown = lastTouch.clientY;
+
+    const xDir = (cxDown-lxDown)/2;
+    const yDir = (lyDown-cyDown)/2;
+
+    rotate_polygon(polygons[1], xDir, yDir);
+    rotate_polygon(polygons[0], xDir, yDir);
+
+    if (!xDown || !yDown) {
+        return;
+    }
+    
+    
+    var xUp = evt.touches[0].clientX;
+    var yUp = evt.touches[0].clientY;
+
+    var xDiff = xDown - xUp;
+    var yDiff = yDown - yUp;
+
+    if (Math.abs(xDiff) > Math.abs(yDiff)) {/*most significant*/
+        if (xDiff > 0) {
+            /* right swipe */
+        } else {
+            /* left swipe */
+        }
+    } else {
+        if (yDiff > 0) {
+            /* down swipe */
+        } else {
+            /* up swipe */
+        }
+    }
+    /* reset values */
+    // xDown = null;
+    // yDown = null;
+
+    lastTouch = currentTouch;
+};
+
 
 
 // drawTriangle(
