@@ -1,6 +1,6 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-var ALLOWED_LOG, max_depth, CAMERA_ANGLE, resizeTimeOut, w_camera_angle, h_camera_angle, angle, aspectRatio, camera, w_camera_total_inter_distance, h_camera_total_inter_distance, events, font, height, ii, img, keys, m, max_angle, mouse, mouseClick, mouse_x, mouse_y, point_one, point_one_angles, point_one_rot, point_two, point_two_angles, point_two_rot, points, polygon_screen, polygons, relations, screen, size, speed, stime_start, time_start, width, x, xs, y, ys, z, gamedirection;
+var ALLOWED_LOG, max_depth, CAMERA_ANGLE, resizeTimeOut, w_camera_angle, h_camera_angle, angle, aspectRatio, camera, w_camera_total_inter_distance, h_camera_total_inter_distance, events, font, height, ii, img, keys, m, max_angle, mouse, mouseClick, mouse_x, mouse_y, point_one, point_one_angles, point_one_rot, point_two, point_two_angles, point_two_rot, points, polygon_screen, polygons, relations, screen, size, speed, stime_start, time_start, width, x, screenCoortinatesP1, y, screenCoortinatesP2, z, gamedirection;
 max_depth = 24;
 var width = window.innerWidth;
 var height = window.innerHeight;
@@ -8,27 +8,45 @@ var PHONE = 0;
 var COMPUTER = 1;
 var DEVICE;
 
+const zFadingDistance = 1;
+
 gamedirection = [];
 CAMERA_ANGLE = 45;
-speed = 0.4;
+speed = 0.6;
 size = 10;
 
 let cube_shape = get_polygon_from_json(cube);
 let triangle_shape = get_polygon_from_json(triangle1);
+let teapot_shape = get_polygon_from_json(teapot);
 
+// polygons = [teapot_shape];
+// polygons = [cube_shape];
 polygons = [cube_shape, triangle_shape];
 
 function reset_camera() {
     return {
+
+
         "coordinates": {
-            "x": 92.98056446104476,
-            "y": 15.200000000000006,
-            "z": 100.702654826248
+            "x": 100,
+            "y": 10,
+            "z": 100
         },
         "angle": {
-            "x": -26.099999999999994,
-            "y": 4.049999999999983
+            "x": 0,
+            "y": 0
         }
+
+
+        // "coordinates": {
+        //     "x": 92.98056446104476,
+        //     "y": 15.200000000000006,
+        //     "z": 100.702654826248
+        // },
+        // "angle": {
+        //     "x": -26.099999999999994,
+        //     "y": 4.049999999999983
+        // }
     }
 }
 
@@ -36,28 +54,33 @@ function reset_camera() {
 
 savedcamera = localStorage.getItem("camera");
 
-if(savedcamera){
+if (savedcamera) {
     try {
         camera = JSON.parse(savedcamera);
     } catch (error) {
-        
+
         camera = reset_camera();
 
         let sc = JSON.stringify(camera);
         localStorage.setItem("camera", sc);
 
-        
+
 
     }
 } else {
     camera = reset_camera();
 }
+camera = reset_camera();
+
+
 
 function resize_canvas() {
 
 
-    width = 800 || window.innerWidth;
-    height = 800 || window.innerHeight;
+    width = s || window.innerWidth;
+    height = s || window.innerHeight;
+    // width = 800 || window.innerWidth;
+    // height = 800 || window.innerHeight;
 
     aspectRatio = width / height
 
@@ -136,28 +159,28 @@ function point_to_intersection(camera, vector, p1, p2) {
     var inter;
 
     [x, y, z] = angles_to_vector(
-        -camera["angle"]["x"],
-        -camera["angle"]["y"],
+        -camera["angle"].x,
+        -camera["angle"].y,
         1
     )
 
     inter = isect_line_plane_v3(
-        [p1["x"], p1["y"], p1["z"]],
-        [p2["x"], p2["y"], p2["z"]],
-        [camera["coordinates"]["x"] + x, camera["coordinates"]["y"] + y, camera["coordinates"]["z"] + z],
+        [p1.x, p1.y, p1.z],
+        [p2.x, p2.y, p2.z],
+        [camera.coordinates.x + x, camera.coordinates.y + y, camera.coordinates.z + z],
         vector
     );
 
     if (inter) {
-        return worldscreenpoint__camera_point(camera["coordinates"]["x"], camera["coordinates"]["y"], camera["coordinates"]["z"], inter[0], inter[1], inter[2], camera["angle"]["x"], camera["angle"]["y"]);
+        return worldscreenpoint__camera_point(camera.coordinates.x, camera.coordinates.y, camera.coordinates.z, inter[0], inter[1], inter[2], camera["angle"].x, camera["angle"].y);
     }
 }
 
 function get_angles_from_depth_inter(point_one, point_two) {
     var normal_depth, p1, p2, p3;
-    p1 = [camera["coordinates"]["x"], camera["coordinates"]["y"], camera["coordinates"]["z"]];
-    p2 = [camera["coordinates"]["x"] + 2, camera["coordinates"]["y"] - 1, camera["coordinates"]["z"]];
-    p3 = [camera["coordinates"]["x"] - 1, camera["coordinates"]["y"] + 2, camera["coordinates"]["z"]];
+    p1 = [camera.coordinates.x, camera.coordinates.y, camera.coordinates.z];
+    p2 = [camera.coordinates.x + 2, camera.coordinates.y - 1, camera.coordinates.z];
+    p3 = [camera.coordinates.x - 1, camera.coordinates.y + 2, camera.coordinates.z];
 
     normal_depth = points_to_normal(p1, p2, p3, camera);
 
@@ -206,7 +229,7 @@ function angles_to_vector(xangle, yangle, r) {
 
 function get_polygon_from_json(polygon_json) {
     var abs_coordinates, angles, coordinates, relations, colors, scale, vertexs, x_degrees, y_degrees, z_degrees;
-    abs_coordinates = polygon_json["coordinates"];
+    abs_coordinates = polygon_json.coordinates;
     scale = polygon_json["scale"];
     vertexs = polygon_json["points"];
     angles = polygon_json["angles"];
@@ -223,7 +246,7 @@ function get_polygon_from_json(polygon_json) {
     }
 
     polygon_json["relations"] = relations;
-    [x_degrees, y_degrees, z_degrees] = [angles["x"], angles["y"], angles["z"]];
+    [x_degrees, y_degrees, z_degrees] = [angles.x, angles.y, angles.z];
 
     vertexs = function () {
         var _pj_a = [],
@@ -233,9 +256,9 @@ function get_polygon_from_json(polygon_json) {
             var vertex = _pj_b[_pj_c];
 
             _pj_a.push({
-                "x": vertex["x"] * scale["x"],
-                "y": vertex["y"] * scale["y"],
-                "z": vertex["z"] * scale["z"]
+                "x": vertex.x * scale.x,
+                "y": vertex.y * scale.y,
+                "z": vertex.z * scale.z
             });
         }
 
@@ -250,9 +273,9 @@ function get_polygon_from_json(polygon_json) {
             var v = _pj_b[_pj_c];
 
             _pj_a.push({
-                "x": v["x"] * Math.cos(degrees_to_radians(x_degrees)) - v["y"] * Math.sin(degrees_to_radians(x_degrees)),
-                "y": v["x"] * Math.sin(degrees_to_radians(x_degrees)) + v["y"] * Math.cos(degrees_to_radians(x_degrees)),
-                "z": v["z"]
+                "x": v.x * Math.cos(degrees_to_radians(x_degrees)) - v.y * Math.sin(degrees_to_radians(x_degrees)),
+                "y": v.x * Math.sin(degrees_to_radians(x_degrees)) + v.y * Math.cos(degrees_to_radians(x_degrees)),
+                "z": v.z
             });
         }
 
@@ -267,9 +290,9 @@ function get_polygon_from_json(polygon_json) {
             var v = _pj_b[_pj_c];
 
             _pj_a.push({
-                "x": v["x"] * Math.cos(degrees_to_radians(y_degrees)) - v["z"] * Math.sin(degrees_to_radians(y_degrees)),
-                "z": v["x"] * Math.sin(degrees_to_radians(y_degrees)) + v["z"] * Math.cos(degrees_to_radians(y_degrees)),
-                "y": v["y"]
+                "x": v.x * Math.cos(degrees_to_radians(y_degrees)) - v.z * Math.sin(degrees_to_radians(y_degrees)),
+                "z": v.x * Math.sin(degrees_to_radians(y_degrees)) + v.z * Math.cos(degrees_to_radians(y_degrees)),
+                "y": v.y
             });
         }
 
@@ -284,9 +307,9 @@ function get_polygon_from_json(polygon_json) {
             var v = _pj_b[_pj_c];
 
             _pj_a.push({
-                "z": v["z"] * Math.cos(degrees_to_radians(z_degrees)) - v["y"] * Math.sin(degrees_to_radians(z_degrees)),
-                "y": v["z"] * Math.sin(degrees_to_radians(z_degrees)) + v["y"] * Math.cos(degrees_to_radians(z_degrees)),
-                "x": v["x"]
+                "z": v.z * Math.cos(degrees_to_radians(z_degrees)) - v.y * Math.sin(degrees_to_radians(z_degrees)),
+                "y": v.z * Math.sin(degrees_to_radians(z_degrees)) + v.y * Math.cos(degrees_to_radians(z_degrees)),
+                "x": v.x
             });
         }
 
@@ -301,9 +324,9 @@ function get_polygon_from_json(polygon_json) {
             var c = _pj_b[_pj_c];
 
             _pj_a.push({
-                "x": abs_coordinates["x"] + c["x"],
-                "y": abs_coordinates["y"] + c["y"],
-                "z": abs_coordinates["z"] + c["z"]
+                "x": abs_coordinates.x + c.x,
+                "y": abs_coordinates.y + c.y,
+                "z": abs_coordinates.z + c.z
             });
         }
 
@@ -317,13 +340,13 @@ function get_polygon_from_json(polygon_json) {
 function rotate_polygon(polygon, ax, ay) {
     var abs_coor, p, pointsa;
     points = polygon["absolute_coordinates"];
-    abs_coor = polygon["coordinates"];
-    polygon.angles = {"x":ax,"y":ay}
+    abs_coor = polygon.coordinates;
+    polygon.angles = { "x": ax, "y": ay }
     pointsa = [];
 
     for (var p, _pj_c = 0, _pj_a = points, _pj_b = _pj_a.length; _pj_c < _pj_b; _pj_c += 1) {
         p = _pj_a[_pj_c];
-        [x, y, z] = rotate_3d_point(abs_coor["x"], abs_coor["y"], abs_coor["z"], ax, ay, p["x"], p["y"], p["z"]);
+        [x, y, z] = rotate_3d_point(abs_coor.x, abs_coor.y, abs_coor.z, ax, ay, p.x, p.y, p.z);
         p = {
             "x": x,
             "y": y,
@@ -339,12 +362,12 @@ function rotate_polygon(polygon, ax, ay) {
 function move_polygon(polygon, x, y, z) {
     // var abs_coor, p, pointsa;
     let points = polygon["absolute_coordinates"];
-    let coordinates = polygon["coordinates"];
+    let coordinates = polygon.coordinates;
 
     // console.log(abs_coor);
 
     // console.log(coordinates);
-    
+
     coordinates.x += x;
     coordinates.y += y;
     coordinates.z += z;
@@ -353,7 +376,7 @@ function move_polygon(polygon, x, y, z) {
 
     var npoints = [];
 
-    for (var i = 0 ; i < points.length; i++) {
+    for (var i = 0; i < points.length; i++) {
         var p = points[i];
 
         npoints.push({
@@ -372,7 +395,7 @@ function move_polygon(polygon, x, y, z) {
 
     // for (var p, _pj_c = 0, _pj_a = points, _pj_b = _pj_a.length; _pj_c < _pj_b; _pj_c += 1) {
     //     p = _pj_a[_pj_c];
-    //     [x, y, z] = rotate_3d_point(abs_coor["x"], abs_coor["y"], abs_coor["z"], ax, ay, p["x"], p["y"], p["z"]);
+    //     [x, y, z] = rotate_3d_point(abs_coor.x, abs_coor.y, abs_coor.z, ax, ay, p.x, p.y, p.z);
     //     p = {
     //         "x": x,
     //         "y": y,
@@ -414,40 +437,40 @@ function main(once) {
 
     if (gamedirection) {
         if (gamedirection.indexOf("Control") != -1) {
-            camera["coordinates"]["y"] -= speed
+            camera.coordinates.y -= speed
         }
         if (gamedirection.indexOf(" ") != -1) {
-            camera["coordinates"]["y"] += speed
+            camera.coordinates.y += speed
         }
         if (gamedirection.indexOf("w") != -1) {
             [x, y, z] = angles_to_vector(
-                (-camera["angle"]["x"]), 0, speed)
-            camera["coordinates"]["x"] += x
-            camera["coordinates"]["y"] += y
-            camera["coordinates"]["z"] += z
+                (-camera["angle"].x), 0, speed)
+            camera.coordinates.x += x
+            camera.coordinates.y += y
+            camera.coordinates.z += z
 
         }
         if (gamedirection.indexOf("a") != -1) {
             [x, y, z] = angles_to_vector(
-                (-camera["angle"]["x"]) - 90, 0, speed
+                (-camera["angle"].x) - 90, 0, speed
             )
-            camera["coordinates"]["x"] += x
-            camera["coordinates"]["y"] += y
-            camera["coordinates"]["z"] += z
+            camera.coordinates.x += x
+            camera.coordinates.y += y
+            camera.coordinates.z += z
         }
         if (gamedirection.indexOf("d") != -1) {
             [x, y, z] = angles_to_vector(
-                (-camera["angle"]["x"]) + 90, 0, speed)
-            camera["coordinates"]["x"] += x
-            camera["coordinates"]["y"] += y
-            camera["coordinates"]["z"] += z
+                (-camera["angle"].x) + 90, 0, speed)
+            camera.coordinates.x += x
+            camera.coordinates.y += y
+            camera.coordinates.z += z
         }
         if (gamedirection.indexOf("s") != -1) {
             [x, y, z] = angles_to_vector(
-                (-camera["angle"]["x"]), 0, speed)
-            camera["coordinates"]["x"] -= x
-            camera["coordinates"]["y"] -= y
-            camera["coordinates"]["z"] -= z
+                (-camera["angle"].x), 0, speed)
+            camera.coordinates.x -= x
+            camera.coordinates.y -= y
+            camera.coordinates.z -= z
         }
     }
 
@@ -474,72 +497,105 @@ function main(once) {
             for (var _pj_f = 0, _pj_g = _pj_e.length; _pj_f < _pj_g; _pj_f += 1) {
                 var point = _pj_e[_pj_f];
 
-                _pj_d.push(worldscreenpoint__camera_point(camera["coordinates"]["x"], camera["coordinates"]["y"], camera["coordinates"]["z"], point["x"], point["y"], point["z"], camera["angle"]["x"], camera["angle"]["y"]));
+                _pj_d.push(worldscreenpoint__camera_point(camera.coordinates.x, camera.coordinates.y, camera.coordinates.z, point.x, point.y, point.z, camera["angle"].x, camera["angle"].y));
             }
 
             return _pj_d;
         }.call(this);
 
-        for (var rf, _pj_f = 0, _pj_d = relations, _pj_e = _pj_d.length; _pj_f < _pj_e; _pj_f += 1) {
+        for (var triangle_relations, _pj_f = 0, _pj_d = relations, _pj_e = _pj_d.length; _pj_f < _pj_e; _pj_f += 1) {
 
-            rf = _pj_d[_pj_f];
+            triangle_relations = _pj_d[_pj_f];
 
             let triangle = [];
 
-            for (let rindex = 0; rindex < rf.length; rindex++) {
-                const r = rf[rindex];
+            let skiped = 0;
+            let intersected = 0;
+            for (let rindex = 0; rindex < triangle_relations.length; rindex++) {
+                const single_triangle_relation = triangle_relations[rindex];
 
-                point_one = points[r[0]];
-                point_two = points[r[1]];
-                point_one_angles = polygon_screen[r[0]];
-                point_two_angles = polygon_screen[r[1]];
+                point_one = points[single_triangle_relation[0]];
+                point_two = points[single_triangle_relation[1]];
+                point_one_angles = polygon_screen[single_triangle_relation[0]];
+                point_two_angles = polygon_screen[single_triangle_relation[1]];
 
                 if (!point_one || !point_two) continue;
-                [x, y, z] = rotate_3d_point(camera["coordinates"]["x"], camera["coordinates"]["y"], camera["coordinates"]["z"], -camera["angle"]["x"], -camera["angle"]["y"], point_one["x"], point_one["y"], point_one["z"]);
+                [x, y, z] = rotate_3d_point(camera.coordinates.x, camera.coordinates.y, camera.coordinates.z, -camera["angle"].x, -camera["angle"].y, point_one.x, point_one.y, point_one.z);
                 point_one_rot = {
                     "x": x,
                     "y": y,
                     "z": z
                 };
-                [x, y, z] = rotate_3d_point(camera["coordinates"]["x"], camera["coordinates"]["y"], camera["coordinates"]["z"], -camera["angle"]["x"], -camera["angle"]["y"], point_two["x"], point_two["y"], point_two["z"]);
+                [x, y, z] = rotate_3d_point(camera.coordinates.x, camera.coordinates.y, camera.coordinates.z, -camera["angle"].x, -camera["angle"].y, point_two.x, point_two.y, point_two.z);
                 point_two_rot = {
                     "x": x,
                     "y": y,
                     "z": z
                 };
 
-                if (point_one_rot["z"] < camera["coordinates"]["z"] && point_two_rot["z"] < camera["coordinates"]["z"]) {
+                // si de esta linea, producto de la relación entre dos puntos
+                // ambos puntos están detrás de la cámara, pasando
+                if (point_one_rot.z < camera.coordinates.z + zFadingDistance && point_two_rot.z < camera.coordinates.z + zFadingDistance) {
+                    skiped++;
                     continue;
                 }
 
-                if (point_one_rot["z"] < camera["coordinates"]["z"] + 1) {
+                // let intersected = 0;
+
+                // si uno de los 2 puntos está detrás, obtenemos el punto intersectado con 
+                // el plano de la cámara
+                if (point_one_rot.z < camera.coordinates.z + zFadingDistance) {
                     point_one_angles = get_angles_from_depth_inter(point_one, point_two);
+                    intersected++;
                 }
 
-                if (point_two_rot["z"] < camera["coordinates"]["z"] + 1) {
+                // si uno de los 2 puntos está detrás, obtenemos el punto intersectado con 
+                // el plano de la cámara
+                if (point_two_rot.z < camera.coordinates.z + zFadingDistance) {
                     point_two_angles = get_angles_from_depth_inter(point_one, point_two);
+                    intersected++;
                 }
 
-                if(!point_one_angles||!point_two_angles) continue;
-                xs = angles_to_screenpixel(point_one_angles[0], point_one_angles[1]);
-                ys = angles_to_screenpixel(point_two_angles[0], point_two_angles[1]);
-                m = 1000000;
+                // nose xd
+                if (!point_one_angles || !point_two_angles) continue;
+
+                // convertir coordenadas en el mundo virtual de los puntos, a coordenadas en la pantalla
+                screenCoortinatesP1 = angles_to_screenpixel(point_one_angles[0], point_one_angles[1]);
+                screenCoortinatesP2 = angles_to_screenpixel(point_two_angles[0], point_two_angles[1]);
+
+                // obtener las distancias de la cámara al puntos
+                const distanceToP1 = distance3d(
+                    [camera.coordinates.x, camera.coordinates.y, camera.coordinates.z],
+                    [point_one.x, point_one.y, point_one.z],
+                )
+                const distanceToP2 = distance3d(
+                    [camera.coordinates.x, camera.coordinates.y, camera.coordinates.z],
+                    [point_two.x, point_two.y, point_two.z],
+                )
+
 
                 triangle.push(
                     [
-                        xs,
-                        distance3d(
-                            [camera.coordinates.x,camera.coordinates.y,camera.coordinates.z], 
-                            [point_one.x,point_one.y,point_one.z], 
-                        )
+                        screenCoortinatesP1,
+                        distanceToP1,
+                        screenCoortinatesP2,
+                        distanceToP2
                     ]
                 );
 
+                // console.log(
+                //     screenCoortinatesP1
+                // );
+                draw_line(
+                    screenCoortinatesP1,
+                    screenCoortinatesP2,
+                    distanceToP1, distanceToP2
+                );
 
             }
 
             triangles.push(
-                [triangle, polygon.colors[_pj_f]]
+                [triangle, polygon.colors[_pj_f], intersected, skiped]
             );
 
         }
@@ -550,45 +606,99 @@ function main(once) {
 
     if (true) {
 
+        // console.log(triangles);
         for (let i = 0; i < triangles.length; i++) {
-            const triangle1 = triangles[i][0];
+            let triangle1 = triangles[i][0];
             const color = triangles[i][1];
-            if (!triangle1) continue
-            if (!triangle1.length) continue
-            if (triangle1.length != 3) continue
-            let [p1,p3,p5] = [triangle1[0][0], triangle1[1][0], triangle1[2][0]];
+            const intersected = triangles[i][2];
+            const skiped = triangles[i][3];
+            if (!triangle1) continue;
+            if (!triangle1.length) continue;
+
+            // if (triangle1.length != 3) continue;
+            // el triangulo tiene 1 arista completamente fuera de la cámara
+            if (triangle1.length != 3) {
+                if (triangle1[0][0][0] === triangle1[1][2][0] && triangle1[1][2][1] === triangle1[0][0][1]) {
+                    triangle1.push(
+                        [triangle1[0][2], triangle1[0][3]]
+                    );
+                } else {
+                    triangle1.push(
+                        [triangle1[1][2], triangle1[1][3]]
+                    );
+                }
+
+                // continue;
+            }
+
+            if (intersected === 2 && skiped === 0) {
+                if (triangle1[0][0][0] === triangle1[2][2][0] && triangle1[0][0][1] === triangle1[2][2][1]) {
+                    let [p1, p3, p5] = [triangle1[0][2], triangle1[1][0], triangle1[2][2]];
+                    let [p1_depth, p3_depth, p5_depth] = [triangle1[0][3], triangle1[1][1], triangle1[2][3]];
+                    p1[2] = p1_depth;
+                    p3[2] = p3_depth;
+                    p5[2] = p5_depth;
+                    drawTriangle(p1, p3, p5, color);
+                    [p1, p3, p5] = [triangle1[0][2], triangle1[1][2], triangle1[2][0]];
+                    [p1_depth, p3_depth, p5_depth] = [triangle1[0][3], triangle1[1][3], triangle1[2][1]];
+                    p1[2] = p1_depth;
+                    p3[2] = p3_depth;
+                    p5[2] = p5_depth;
+                    drawTriangle(p1, p3, p5, color);
+                } else {
+                    let [p1, p3, p5] = [triangle1[0][0], triangle1[1][2], triangle1[2][2]];
+                    let [p1_depth, p3_depth, p5_depth] = [triangle1[0][1], triangle1[1][3], triangle1[2][3]];
+                    p1[2] = p1_depth;
+                    p3[2] = p3_depth;
+                    p5[2] = p5_depth;
+                    drawTriangle(p1, p3, p5, color);
+                }
+            }
+
+
+            let [p1, p3, p5] = [triangle1[0][0], triangle1[1][0], triangle1[2][0]];
             let [p1_depth, p3_depth, p5_depth] = [triangle1[0][1], triangle1[1][1], triangle1[2][1]];
             p1[2] = p1_depth;
             p3[2] = p3_depth;
             p5[2] = p5_depth;
 
-            drawTriangle(p1,p3,p5,color);
+            // if(color[0]===20){
+            //     console.log("T", p1[2], p3[2], p5[2]);
+            // } else {
+            //     console.log("C", p1[2], p3[2], p5[2]);
+            // }
+            drawTriangle(p1, p3, p5, color);
 
         }
 
-        array_to_canvas();
 
-        setTimeout(main, 1);
-        
+
     } else {
 
-        triangle_work_total = triangles.length;
-        let div = 100;
-        let vueltas = parseInt(triangle_work_total / div) + 1;
-        let post_triangles = [];
+        // triangle_work_total = triangles.length;
+        // let div = 100;
+        // let vueltas = parseInt(triangle_work_total / div) + 1;
+        // let post_triangles = [];
 
-        for (let i = 0; i < vueltas; i++) {
-            post_triangles = triangles.slice(i * div, (i + 1) * div);
-            triangle_worker.postMessage({ "triangles": post_triangles })
+        // for (let i = 0; i < vueltas; i++) {
+        //     post_triangles = triangles.slice(i * div, (i + 1) * div);
+        //     triangle_worker.postMessage({ "triangles": post_triangles })
 
-        }
+        // }
 
     }
 
+    array_to_canvas();
 
+    setTimeout(main, 10);
 
     rotate_polygon(polygons[0], 1,1);
-    move_polygon(polygons[1], 0,0.02,0);
+    rotate_polygon(polygons[1], -1,0);
+    // move_polygon(polygons[1], 0,0.02,0);
+
+
+    // rotate_polygon(polygons[0], 1,1);
+
 
     // rotate_polygon(polygons[1], -2,0);
 
@@ -669,8 +779,8 @@ function points_to_normal(p1, p2, p3, camera) {
 
     for (var p, _pj_c = 0, _pj_a = points, _pj_b = _pj_a.length; _pj_c < _pj_b; _pj_c += 1) {
         p = _pj_a[_pj_c];
-        [y, z] = rotate_point(camera["coordinates"].y, camera["coordinates"].z, camera["angle"].y, p[1], p[2]);
-        [x, z] = rotate_point(camera["coordinates"].x, camera["coordinates"].z, camera["angle"].x, p[0], z);
+        [y, z] = rotate_point(camera.coordinates.y, camera.coordinates.z, camera["angle"].y, p[1], p[2]);
+        [x, z] = rotate_point(camera.coordinates.x, camera.coordinates.z, camera["angle"].x, p[0], z);
         points[_pj_c] = [x, y, z];
     }
 
@@ -687,6 +797,11 @@ function points_to_normal(p1, p2, p3, camera) {
 
 function onMouseUpdate(e) {
 
+    // console.log(pressing);
+    if (!pressing) {
+        return;
+    }
+
     let mouse_x = e.pageX || 1;
     let mouse_y = e.pageY || 1;
 
@@ -695,8 +810,8 @@ function onMouseUpdate(e) {
 
     max_angle = 180
 
-    camera["angle"]["x"] = -(((max_angle * 2) * (mouse_x / 100)) - max_angle);
-    camera["angle"]["y"] = -(((max_angle * 2) * (mouse_y / 100)) - max_angle);
+    camera["angle"].x = -(((max_angle * 2) * (mouse_x / 100)) - max_angle);
+    camera["angle"].y = -(((max_angle * 2) * (mouse_y / 100)) - max_angle);
 
     let sc = JSON.stringify(camera);
     localStorage.setItem("camera", sc);
@@ -740,6 +855,17 @@ document.addEventListener("keyup", function (evt) {
 });
 document.addEventListener('mousemove', onMouseUpdate, false);
 
+let pressing = false;
+document.addEventListener('mousedown', function () {
+
+    pressing = true;
+
+}, false);
+document.addEventListener('mouseup', function () {
+
+    pressing = false;
+
+}, false);
 
 
 resize_canvas();
@@ -749,15 +875,16 @@ function sign(p1, p2, p3) {
 }
 
 function depth_to_color(depth) {
-    // max_depth = 22
+
+    max_depth = 7
     depth = Math.min(depth, max_depth);
     // depth = Math.max(depth, 18);
 
-    if(depth < 18) depth = 1;
-    if(depth > 22) depth = 22;
+    if (depth < 5) depth = 1;
+    // if (depth > 22) depth = 22;
 
     let a1 = (depth / (max_depth / 10)) / 10
-    return colourGradientor(a1, [255,255,255], [30, 25, 40]);
+    return colourGradientor(a1, [255, 255, 255], [30, 25, 40]);
     // return colourGradientor(a1, [30, 25, 40], [240, 240, 240]);
 }
 function colourGradientor(p, rgb_beginning, rgb_end) {
@@ -778,7 +905,7 @@ function distance(x1, y1, x2, y2) {
 
     return Math.sqrt(x * x + y * y);
 }
-function distance3d(p1,p2) {
+function distance3d(p1, p2) {
     var a = p2[0] - p1[0];
     var b = p2[1] - p1[1];
     var c = p2[2] - p1[2];
@@ -800,7 +927,7 @@ function PointInTriangle(pt, v1, v2, v3) {
     return !(has_neg && has_pos);
 }
 
-let draw_line = (x1, y1, x2, y2, p1_depth, p2_depth, outline=false) => {
+let draw_line = ([x1, y1], [x2, y2], p1_depth, p2_depth, outline = true) => {
     // Iterators, counters required by algorithm
     let x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
     // Calculate line deltas
@@ -820,7 +947,7 @@ let draw_line = (x1, y1, x2, y2, p1_depth, p2_depth, outline=false) => {
         } else { // Line is drawn right to left (swap ends)
             x = x2; y = y2; xe = x1;
         }
-        pixelline(x, y, [x1, y1], [x2, y2], p1_depth, p2_depth, [0,0,0], zbuffer=false, outline=outline);
+        p(x, y, [x1, y1], [x2, y2], p1_depth, p2_depth, [0, 0, 0], outline = outline);
         // Rasterize the line
         for (i = 0; x < xe; i++) {
             x = x + 1;
@@ -837,7 +964,7 @@ let draw_line = (x1, y1, x2, y2, p1_depth, p2_depth, outline=false) => {
             }
             // Draw pixel from line span at
             // currently rasterized position
-            pixelline(x, y, [x1, y1], [x2, y2], p1_depth, p2_depth, [0,0,0], zbuffer=false, outline=outline);
+            p(x, y, [x1, y1], [x2, y2], p1_depth, p2_depth, [0, 0, 0], outline = outline);
         }
     } else { // The line is Y-axis dominant
         // Line is drawn bottom to top
@@ -846,7 +973,7 @@ let draw_line = (x1, y1, x2, y2, p1_depth, p2_depth, outline=false) => {
         } else { // Line is drawn top to bottom
             x = x2; y = y2; ye = y1;
         }
-        pixelline(x, y, [x1, y1], [x2, y2], p1_depth, p2_depth, [0,0,0], zbuffer=false, outline=outline);
+        p(x, y, [x1, y1], [x2, y2], p1_depth, p2_depth, [0, 0, 0], outline = outline);
         // Rasterize the line
         for (i = 0; y < ye; i++) {
             y = y + 1;
@@ -863,58 +990,72 @@ let draw_line = (x1, y1, x2, y2, p1_depth, p2_depth, outline=false) => {
             }
             // Draw pixel from line span at
             // currently rasterized position
-            pixelline(x, y, [x1, y1], [x2, y2], p1_depth, p2_depth, [0,0,0], zbuffer=false, outline=outline);
+            p(x, y, [x1, y1], [x2, y2], p1_depth, p2_depth, [0, 0, 0], outline = outline);
         }
     }
 }
 
-function depth_btw_points(x,y,p1,p2,d1,d2){
-    let dis1 = distance(x,y,p1[0],p1[1]);
-    let dis_total = distance(p1[0],p1[1],p2[0],p2[1]);
-    let dis_per = 100 / ( dis_total / dis1 )
-    let ddiff = Math.abs(d1-d2);
+function p(x, y, p1, p2, d1, d2, color, outline = false) {
+    pixelline(x, y, p1, p2, d1, d2, color, outline);
+    // pixelline(x+1, y, p1, p2, d1, d2, color, outline);
+    // pixelline(x-1, y, p1, p2, d1, d2, color, outline);
+    // pixelline(x, y+1, p1, p2, d1, d2, color, outline);
+    // pixelline(x, y-1, p1, p2, d1, d2, color, outline);
+}
+
+function depth_btw_points(x, y, p1, p2, d1, d2) {
+    let dis1 = distance(x, y, p1[0], p1[1]);
+    let dis_total = distance(p1[0], p1[1], p2[0], p2[1]);
+    let dis_per = 100 / (dis_total / dis1)
+    let ddiff = Math.abs(d1 - d2);
     let depth = 0;
-    if(d1<d2){
-        depth = d1 + ddiff*(dis_per/100);
+    if (d1 < d2) {
+        depth = d1 + ddiff * (dis_per / 100);
     } else {
-        depth = d1 - ddiff*(dis_per/100);
+        depth = d1 - ddiff * (dis_per / 100);
     }
     return depth;
 }
 
-function pixelline(x,y, p1,p2, d1,d2, color, zbuffer=true, outline=false) {
+function pixelline(x, y, p1, p2, d1, d2, color, outline = false) {
 
     if (x <= 0 || y <= 0 || x >= width || y >= width) {
         return;
     }
 
     // let color = null;
-    depth = depth_btw_points(x,y,p1,p2,d1,d2);
+    depth = depth_btw_points(x, y, p1, p2, d1, d2);
 
-    if(outline) depth -= .2;
+    if (outline) {
+        depth -= .02;
 
-    // color = depth_to_color(depth);
+    }
 
-    if(isNaN(depth) || !color){
+    if (!color) {
+        color = depth_to_color(depth);
+    }
+    // color = [20,20,20];
+
+    if (isNaN(depth) || !color) {
         return;
     }
-    
 
-    if(true){
+
+    if (true) {
         // pixel_depth_index = x + "_" + y
         // if (pixels_depth.hasOwnProperty(pixel_depth_index)) {
-    
-        if(pixels_depth.length < x){
+
+        if (pixels_depth.length < x) {
             pixels_depth[x] = []
         } else {
 
-            if(!pixels_depth[x]){
+            if (!pixels_depth[x]) {
                 pixels_depth[x] = []
             }
 
-            if(pixels_depth[x].length >= y){
+            if (pixels_depth[x].length >= y) {
                 previous_depth = pixels_depth[x][y];
-            
+
                 if (previous_depth < depth) {
                     return;
                 }
@@ -923,15 +1064,15 @@ function pixelline(x,y, p1,p2, d1,d2, color, zbuffer=true, outline=false) {
         }
 
         // if()
-    
+
         // }
         // baja los efe pe eses a -2M
-        pixels_depth[x][y] = depth
+        pixels_depth[x][y] = depth;
     }
-    
 
-    
-    
+
+    // color = depth_to_color(depth);
+
 
     ci = ((y * width) + x) * 4;
 
@@ -942,7 +1083,7 @@ function pixelline(x,y, p1,p2, d1,d2, color, zbuffer=true, outline=false) {
 
 }
 
-const triangle_worker = new Worker("./js/drawTriangle.js");
+// const triangle_worker = new Worker("./js/drawTriangle.js");
 let triangle_work_total = 0;
 let triangle_work_current = 0;
 let all_pixels = [];
@@ -957,19 +1098,19 @@ p5 = [200, 250];
 
 function fillBottomFlatTriangle(v1, v2, v3, color) {
 
-    let invslope1 = (v2[0] - v1[0]) / (v2[1] - v1[1]);
-    let invslope2 = (v3[0] - v1[0]) / (v3[1] - v1[1]);
+    let invslope1 = ((v2[0] - v1[0]) / (v2[1] - v1[1])) + 0.00;
+    let invslope2 = ((v3[0] - v1[0]) / (v3[1] - v1[1])) + 0.00;
 
     let curx1 = v1[0];
     let curx2 = v1[0];
 
     for (let scanlineY = v1[1]; scanlineY <= v2[1]; scanlineY++) {
 
-        x1 = parseInt(curx1);
-        x2 = parseInt(curx2);
+        x1 = Math.round(curx1);
+        x2 = Math.round(curx2);
 
-        d1 = depth_btw_points(x1,scanlineY, v1,v2,v1[2],v2[2]);
-        d2 = depth_btw_points(x2,scanlineY, v1,v3,v1[2],v3[2]);
+        d1 = depth_btw_points(x1, scanlineY, v1, v2, v1[2], v2[2]);
+        d2 = depth_btw_points(x2, scanlineY, v1, v3, v1[2], v3[2]);
 
         draw_hor_line(x1, x2, scanlineY, d1, d2, color);
 
@@ -985,16 +1126,16 @@ function fillTopFlatTriangle(v1, v2, v3, color) {
     let curx1 = v3[0];
     let curx2 = v3[0];
 
-    let d1=null,d2=null;
-    let x1=null,x2=null;
+    let d1 = null, d2 = null;
+    let x1 = null, x2 = null;
 
     for (let scanlineY = v3[1]; scanlineY > v1[1]; scanlineY--) {
-        
-        x1 = parseInt(curx1);
-        x2 = parseInt(curx2);
 
-        d1 = depth_btw_points(x1,scanlineY, v1,v3,v1[2],v3[2]);
-        d2 = depth_btw_points(x2,scanlineY, v2,v3,v2[2],v3[2]);
+        x1 = Math.round(curx1);
+        x2 = Math.round(curx2);
+
+        d1 = depth_btw_points(x1, scanlineY, v1, v3, v1[2], v3[2]);
+        d2 = depth_btw_points(x2, scanlineY, v2, v3, v2[2], v3[2]);
 
         draw_hor_line(x1, x2, scanlineY, d1, d2, color);
         curx1 -= invslope1;
@@ -1003,10 +1144,11 @@ function fillTopFlatTriangle(v1, v2, v3, color) {
 }
 function draw_hor_line(x1, x2, y, d1, d2, color) {
 
+    // color = [255,255,255]
     let m = Math.max(x1, x2);
     for (let x = Math.min(x1, x2); x < m; x++) {
-    // for (let x = Math.min(x1, x2)-1; x < m+1; x++) {
-        pixelline(x, y, [x1,y],[x2,y], d1, d2, color);
+        // for (let x = Math.min(x1, x2)-1; x < m+1; x++) {
+        pixelline(x, y, [x1, y], [x2, y], d1, d2, color);
     }
 
 }
@@ -1031,7 +1173,7 @@ function drawTriangle(v1, v2, v3, color) {
         /* general case - split the triangle in a topflat and bottom-flat one */
         let v4 = [parseInt(rp1[0] + ((rp2[1] - rp1[1]) / (rp3[1] - rp1[1])) * (rp3[0] - rp1[0])), rp2[1]];
         // depth of V4
-        let d4 = depth_btw_points(v4[0],v4[1], rp1,rp3, rp1[2], rp3[2]);
+        let d4 = depth_btw_points(v4[0], v4[1], rp1, rp3, rp1[2], rp3[2]);
         v4.push(d4);
 
         fillBottomFlatTriangle(rp1, rp2, v4, color);
