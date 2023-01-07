@@ -17,7 +17,7 @@ size = 10;
 
 let cube_shape = get_polygon_from_json(cube);
 let triangle_shape = get_polygon_from_json(triangle1);
-let teapot_shape = get_polygon_from_json(teapot);
+// let teapot_shape = get_polygon_from_json(teapot);
 
 // polygons = [teapot_shape];
 // polygons = [cube_shape];
