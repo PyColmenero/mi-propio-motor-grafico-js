@@ -5,26 +5,45 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Graphic Library Vanilla JS</title>
 
     <link rel="stylesheet" href="styles.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
 
 </head>
 
 <body>
 
-    <canvas id="canvas">
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Graphic Library JS</span>
+            <span class="navbar-brand mb-0 fs-6">PyColmenero</span>
+        </div>
+    </nav>
 
-    </canvas>
+    <div class="d-flex justify-content-center vw-100 overflow-hidden">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <footer class="fixed-bottom p-2">
+        
+        <a href="https://github.com/PyColmenero/mi-propio-motor-grafico-js" target="_blank" class="">
+            <i class="bi bi-github"></i> Source code
+        </a>
+
+    </footer>
 
     <script>
-        let tot_com = 800 * 800 * 4;
+        const s = Math.round(window.innerHeight * .9);
+        let tot_com = s * s * 4;
         var u8a = new Uint8ClampedArray(tot_com);
     </script>
-    <!-- <script src="./js/sphere.js"></script> -->
-    <!-- <script src="./shapes/sphere.js"></script> -->
-    <!-- <script src="./js/objToJson.js"></script> -->
+
+
     <!-- <script src="./shapes/teapot.js"></script> -->
     <script src="./shapes/cube.js"></script>
     <script src="./shapes/triangle.js"></script>
